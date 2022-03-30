@@ -28,11 +28,18 @@ func main() {
 	Init()
 	config := Load()
 
-	player_state := PAUSED
-	pomodoro_state := WORK
+	// player_state := PAUSED
+	// pomodoro_state := WORK
 	duration := time.Duration(time.Minute * time.Duration(config.Work))
 
-	color := rl.Black
+	state := State{
+		Player:   PAUSED,
+		Pomodoro: WORK,
+		Color:    rl.Black,
+		Duration: duration,
+	}
+
+	// color := rl.Black
 
 	rl.InitWindow(275, 450, "[raylib] Pomodoro")
 	rl.SetTargetFPS(24)
@@ -50,9 +57,9 @@ func main() {
 		rl.DrawLine(0, 50, 275, 50, rl.Black)
 		// Middle elements
 		// rl.DrawCircleSector(rl.NewVector2(138, 200), 100, 180, 270, 5, rl.Red)
-		_hours := math.Floor(duration.Minutes())
-		_minutes := int(duration.Seconds()) % 60
-		rl.DrawText(fmt.Sprintf("%02.0f:%0.2d", _hours, _minutes), 86, 150, 42, color)
+		_hours := math.Floor(state.Duration.Minutes())
+		_minutes := int(state.Duration.Seconds()) % 60
+		rl.DrawText(fmt.Sprintf("%02.0f:%0.2d", _hours, _minutes), 86, 150, 42, state.Color)
 		//DEBUG LINES
 		//rl.DrawLine(138, 0, 138, 450, rl.Black)
 
@@ -63,7 +70,8 @@ func main() {
 
 		rl.EndDrawing()
 
-		CheckStates(config, &player_state, &pomodoro_state, &duration, &color)
+		// Should replace with state var
+		CheckStates(config, &state) //&player_state, &pomodoro_state, &duration, &color)
 
 		switch {
 		case taskListBtn:
@@ -75,10 +83,10 @@ func main() {
 		case settingsBrn:
 			fmt.Println("settings")
 		case reset:
-			player_state = PAUSED
-			ResetTimer(&duration)
+			state.Player = PAUSED
+			ResetTimer(&state)
 		case startPause:
-			StartPause(&player_state)
+			StartPause(&state)
 			fmt.Println("start\\pause")
 		case skip:
 			fmt.Println("skip")
@@ -88,58 +96,59 @@ func main() {
 	}
 }
 
-func CheckStates(config Config, player_state *int, pomodoro_state *int, duration *time.Duration, color *rl.Color) {
-	switch *player_state {
+func CheckStates(config Config, state *State) { //player_state *int, pomodoro_state *int, duration *time.Duration, color *rl.Color) {
+	switch (*state).Player {
 	case PAUSED:
 	case PLAYING:
-		*duration = *duration - time.Second/24
-		if *duration <= 0 {
-			*player_state = PAUSED
-			CheckPomodoroStates(config, pomodoro_state, duration, color)
+		(*state).Duration = (*state).Duration - time.Second/24
+		if (*state).Duration <= 0 {
+			(*state).Player = PAUSED
+			CheckPomodoroStates(config, state) //pomodoro_state, duration, color)
 		}
 	}
 }
 
-func CheckPomodoroStates(config Config, pomodoro_state *int, duration *time.Duration, color *rl.Color) {
-	switch *pomodoro_state {
+func CheckPomodoroStates(config Config, state *State) { //pomodoro_state *int, duration *time.Duration, color *rl.Color) {
+	switch (*state).Pomodoro {
 	case WORK:
 		config.WorkCount += 1
 		if config.WorkCount%4 == 0 {
-			CPD(pomodoro_state, LONG_REST,
-				color, rl.Yellow,
-				duration, time.Duration(config.Long_rest)*time.Minute)
+			CPD(state, LONG_REST, rl.Yellow, time.Duration(config.Long_rest)*time.Minute)
 		} else {
-			CPD(pomodoro_state, REST,
-				color, rl.Green,
-				duration, time.Duration(config.Rest)*time.Minute)
+			CPD(state, REST, rl.Green, time.Duration(config.Rest)*time.Minute)
 		}
 	case REST:
 		fallthrough
 	case LONG_REST:
-		CPD(pomodoro_state, WORK,
-			color, rl.Black,
-			duration, time.Duration(config.Work)*time.Minute)
+		CPD(state, WORK, rl.Black, time.Duration(config.Work)*time.Minute)
 	}
 }
 
-func CPD(pomodoro_state *int, p_s int, color *rl.Color, c rl.Color, duration *time.Duration, d time.Duration) {
-	*pomodoro_state = p_s
-	*color = c
-	*duration = d
+func CPD(state *State, pomodoro_state int, color rl.Color, duration time.Duration) {
+	(*state).Pomodoro = pomodoro_state
+	(*state).Color = color
+	(*state).Duration = duration
 }
 
-func StartPause(state *int) {
-	if *state == PAUSED {
-		*state = PLAYING
+func StartPause(state *State) {
+	if (*state).Player == PAUSED {
+		(*state).Player = PLAYING
 	} else {
-		*state = PAUSED
+		(*state).Player = PAUSED
 	}
+}
+
+type State struct {
+	Player   int
+	Pomodoro int
+	Color    rl.Color
+	Duration time.Duration
 }
 
 // Reset timer to default config duration.
 // NEED TO DO. BAD IMPLEMENTATION
-func ResetTimer(duration *time.Duration) {
-	*duration = time.Duration(time.Minute * time.Duration(work))
+func ResetTimer(state *State) {
+	(*state).Duration = time.Duration(time.Minute * time.Duration(work))
 }
 
 func Exit() {
