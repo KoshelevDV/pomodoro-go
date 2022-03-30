@@ -105,26 +105,27 @@ func CheckPomodoroStates(config Config, pomodoro_state *int, duration *time.Dura
 	case WORK:
 		config.WorkCount += 1
 		if config.WorkCount%4 == 0 {
-			*color = rl.Yellow
-			*pomodoro_state = LONG_REST
-			*duration = time.Duration(config.Long_rest) * time.Minute
+			CPD(pomodoro_state, LONG_REST,
+				color, rl.Yellow,
+				duration, time.Duration(config.Long_rest)*time.Minute)
 		} else {
-			*color = rl.Green
-			*pomodoro_state = REST
-			*duration = time.Duration(config.Rest) * time.Minute
+			CPD(pomodoro_state, REST,
+				color, rl.Green,
+				duration, time.Duration(config.Rest)*time.Minute)
 		}
 	case REST:
 		fallthrough
 	case LONG_REST:
-		// CPD(WORK, &rl.Black, )
-		*color = rl.Black
-		*pomodoro_state = WORK
-		*duration = time.Duration(config.Work) * time.Minute
+		CPD(pomodoro_state, WORK,
+			color, rl.Black,
+			duration, time.Duration(config.Work)*time.Minute)
 	}
 }
 
-func CPD(pomodoro_state *int, color *rl.Color, duration *time.Duration) {
-
+func CPD(pomodoro_state *int, p_s int, color *rl.Color, c rl.Color, duration *time.Duration, d time.Duration) {
+	*pomodoro_state = p_s
+	*color = c
+	*duration = d
 }
 
 func StartPause(state *int) {
