@@ -10,8 +10,11 @@ import (
 )
 
 const (
-	PAUSED  = iota + 1
-	PLAYING = iota + 1
+	PAUSED    = iota + 1
+	PLAYING   = iota + 1
+	WORK      = iota + 1
+	REST      = iota + 1
+	LONG_REST = iota + 1
 )
 
 var (
@@ -22,8 +25,14 @@ var (
 
 func main() {
 
-	state := PLAYING
-	duration := time.Duration(time.Minute * time.Duration(work))
+	Init()
+	config := Load()
+
+	player_state := PAUSED
+	pomodoro_state := WORK
+	duration := time.Duration(time.Minute * time.Duration(config.Work))
+
+	color := rl.Black
 
 	rl.InitWindow(275, 450, "[raylib] Pomodoro")
 	rl.SetTargetFPS(24)
@@ -32,16 +41,18 @@ func main() {
 		rl.BeginDrawing()
 		rl.ClearBackground(rl.RayWhite)
 
-		rl.DrawLine(0, 50, 275, 50, rl.Black)
 		// Top Buttons
-		taskList := rg.Button(rl.NewRectangle(10, 10, 60, 30), "Task List")
-		config := rg.Button(rl.NewRectangle(75, 10, 60, 30), "Config")
-		timer := rg.Button(rl.NewRectangle(140, 10, 60, 30), "Timer")
-		settings := rg.Button(rl.NewRectangle(205, 10, 60, 30), "Settings")
+		taskListBtn := rg.Button(rl.NewRectangle(10, 10, 60, 30), "Task List")
+		configBtn := rg.Button(rl.NewRectangle(75, 10, 60, 30), "Config")
+		timerBrn := rg.Button(rl.NewRectangle(140, 10, 60, 30), "Timer")
+		settingsBrn := rg.Button(rl.NewRectangle(205, 10, 60, 30), "Settings")
 
+		rl.DrawLine(0, 50, 275, 50, rl.Black)
 		// Middle elements
-		rl.DrawCircleSector(rl.NewVector2(138, 200), 100, 180, 270, 5, rl.Red)
-		rl.DrawText(fmt.Sprintf("%02.0f:%0.2d", math.Floor(duration.Minutes()), int(duration.Seconds())%60), 86, 150, 42, rl.Black)
+		// rl.DrawCircleSector(rl.NewVector2(138, 200), 100, 180, 270, 5, rl.Red)
+		_hours := math.Floor(duration.Minutes())
+		_minutes := int(duration.Seconds()) % 60
+		rl.DrawText(fmt.Sprintf("%02.0f:%0.2d", _hours, _minutes), 86, 150, 42, color)
 		//DEBUG LINES
 		//rl.DrawLine(138, 0, 138, 450, rl.Black)
 
@@ -50,31 +61,24 @@ func main() {
 		startPause := rg.Button(rl.NewRectangle(100, 360, 75, 75), "Start\nPause")
 		skip := rg.Button(rl.NewRectangle(180, 375, 45, 45), "Skip")
 
-		switch state {
-		case PAUSED:
-		case PLAYING:
-			duration = duration - time.Second/24
-			if duration == 0 {
-				state = PAUSED
-			}
-		}
-
 		rl.EndDrawing()
 
+		CheckStates(config, &player_state, &pomodoro_state, &duration, &color)
+
 		switch {
-		case taskList:
+		case taskListBtn:
 			fmt.Println("taskList")
-		case config:
+		case configBtn:
 			fmt.Println("config")
-		case timer:
+		case timerBrn:
 			fmt.Println("timer")
-		case settings:
+		case settingsBrn:
 			fmt.Println("settings")
 		case reset:
-			state = PAUSED
+			player_state = PAUSED
 			ResetTimer(&duration)
 		case startPause:
-			StartPause(&state)
+			StartPause(&player_state)
 			fmt.Println("start\\pause")
 		case skip:
 			fmt.Println("skip")
@@ -82,6 +86,45 @@ func main() {
 
 		go Exit()
 	}
+}
+
+func CheckStates(config Config, player_state *int, pomodoro_state *int, duration *time.Duration, color *rl.Color) {
+	switch *player_state {
+	case PAUSED:
+	case PLAYING:
+		*duration = *duration - time.Second/24
+		if *duration <= 0 {
+			*player_state = PAUSED
+			CheckPomodoroStates(config, pomodoro_state, duration, color)
+		}
+	}
+}
+
+func CheckPomodoroStates(config Config, pomodoro_state *int, duration *time.Duration, color *rl.Color) {
+	switch *pomodoro_state {
+	case WORK:
+		config.WorkCount += 1
+		if config.WorkCount%4 == 0 {
+			*color = rl.Yellow
+			*pomodoro_state = LONG_REST
+			*duration = time.Duration(config.Long_rest) * time.Minute
+		} else {
+			*color = rl.Green
+			*pomodoro_state = REST
+			*duration = time.Duration(config.Rest) * time.Minute
+		}
+	case REST:
+		fallthrough
+	case LONG_REST:
+		// CPD(WORK, &rl.Black, )
+		*color = rl.Black
+		*pomodoro_state = WORK
+		*duration = time.Duration(config.Work) * time.Minute
+	}
+}
+
+func CPD(pomodoro_state *int, color *rl.Color, duration *time.Duration) {
+
 }
 
 func StartPause(state *int) {
@@ -92,6 +135,8 @@ func StartPause(state *int) {
 	}
 }
 
+// Reset timer to default config duration.
+// NEED TO DO. BAD IMPLEMENTATION
 func ResetTimer(duration *time.Duration) {
 	*duration = time.Duration(time.Minute * time.Duration(work))
 }
