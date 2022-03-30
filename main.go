@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"time"
 
 	rg "github.com/gen2brain/raylib-go/raygui"
@@ -21,12 +22,12 @@ var (
 
 func main() {
 
-	state := PAUSED
+	state := PLAYING
 	duration := time.Duration(time.Minute * time.Duration(work))
 
 	rl.InitWindow(275, 450, "[raylib] Pomodoro")
 	rl.SetTargetFPS(24)
-
+	// rl.SetWindowState(rl.FlagWindowUndecorated)
 	for !rl.WindowShouldClose() {
 		rl.BeginDrawing()
 		rl.ClearBackground(rl.RayWhite)
@@ -39,7 +40,10 @@ func main() {
 		settings := rg.Button(rl.NewRectangle(205, 10, 60, 30), "Settings")
 
 		// Middle elements
-		rl.DrawText(fmt.Sprintf("%02.0f:%0.2d", duration.Minutes(), int(duration.Seconds())%60), 88, 150, 42, rl.Black)
+		rl.DrawCircleSector(rl.NewVector2(138, 200), 100, 180, 270, 5, rl.Red)
+		rl.DrawText(fmt.Sprintf("%02.0f:%0.2d", math.Floor(duration.Minutes()), int(duration.Seconds())%60), 86, 150, 42, rl.Black)
+		//DEBUG LINES
+		//rl.DrawLine(138, 0, 138, 450, rl.Black)
 
 		// Bottom Buttons
 		reset := rg.Button(rl.NewRectangle(50, 375, 45, 45), "Reset")
@@ -67,7 +71,8 @@ func main() {
 		case settings:
 			fmt.Println("settings")
 		case reset:
-			fmt.Println("reset")
+			state = PAUSED
+			ResetTimer(&duration)
 		case startPause:
 			StartPause(&state)
 			fmt.Println("start\\pause")
@@ -85,6 +90,10 @@ func StartPause(state *int) {
 	} else {
 		*state = PAUSED
 	}
+}
+
+func ResetTimer(duration *time.Duration) {
+	*duration = time.Duration(time.Minute * time.Duration(work))
 }
 
 func Exit() {

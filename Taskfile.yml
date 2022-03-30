@@ -1,0 +1,21 @@
+version: "3"
+
+tasks:
+  run:
+    desc: Run the app
+    cmds:
+      - go run .
+
+  build_linux:
+    desc: Build linux app
+    env:
+      BUILD_OS: linux
+    cmds:
+      - go build -ldflags -H=windowsgui -o builds/pomodoro-$(echo $(git describe --tags))-$BUILD_OS .
+
+  build_windows:
+    desc: Build windows app
+    env:
+      BUILD_OS: windows
+    cmds:
+      - go build -ldflags -H=windowsgui -o builds/pomodoro-$(echo $(git describe --tags))-$BUILD_OS.exe .

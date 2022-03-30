@@ -1,1 +1,1 @@
-go build -ldflags -H=windowsgui -o builds/pomodoro-$(echo -n $(git describe --tags)).exe .
+go build -ldflags -H=windowsgui -o builds/pomodoro-$(echo $(git describe --tags))-windows.exe .
