@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"math"
 	"time"
 
 	rg "github.com/gen2brain/raylib-go/raygui"
@@ -10,20 +9,42 @@ import (
 )
 
 const (
-	PAUSED  = iota + 1
-	PLAYING = iota + 1
+	PAUSED    = iota + 1
+	PLAYING   = iota + 1
+	WORK      = iota + 1
+	REST      = iota + 1
+	LONG_REST = iota + 1
 )
 
 var (
-	work       = 25
-	shortBreak = 5
-	longBreak  = 15
+	reset      = false
+	startPause = false
+	skip       = false
+
+	topConfBtn  = false
+	topTimerBtn = true
 )
 
 func main() {
 
-	state := PLAYING
-	duration := time.Duration(time.Minute * time.Duration(work))
+	Init()
+	config := Load()
+
+	// player_state := PAUSED
+	// pomodoro_state := WORK
+	duration := time.Duration(time.Minute * time.Duration(config.Work))
+
+	menu := []Menu{Menu(topConfBtn), Menu(topTimerBtn)}
+
+	state := State{
+		Player:   PAUSED,
+		Pomodoro: WORK,
+		Color:    rl.Black,
+		Duration: duration,
+		Menu:     menu,
+	}
+
+	// color := rl.Black
 
 	rl.InitWindow(275, 450, "[raylib] Pomodoro")
 	rl.SetTargetFPS(24)
@@ -32,47 +53,40 @@ func main() {
 		rl.BeginDrawing()
 		rl.ClearBackground(rl.RayWhite)
 
-		rl.DrawLine(0, 50, 275, 50, rl.Black)
 		// Top Buttons
-		taskList := rg.Button(rl.NewRectangle(10, 10, 60, 30), "Task List")
-		config := rg.Button(rl.NewRectangle(75, 10, 60, 30), "Config")
-		timer := rg.Button(rl.NewRectangle(140, 10, 60, 30), "Timer")
-		settings := rg.Button(rl.NewRectangle(205, 10, 60, 30), "Settings")
+		taskListBtn := rg.Button(rl.NewRectangle(10, 10, 60, 30), "Task List")
+		configBtn := rg.Button(rl.NewRectangle(75, 10, 60, 30), "Config")
+		timerBtn := rg.Button(rl.NewRectangle(140, 10, 60, 30), "Timer")
+		settingsBtn := rg.Button(rl.NewRectangle(205, 10, 60, 30), "Settings")
 
-		// Middle elements
-		rl.DrawCircleSector(rl.NewVector2(138, 200), 100, 180, 270, 5, rl.Red)
-		rl.DrawText(fmt.Sprintf("%02.0f:%0.2d", math.Floor(duration.Minutes()), int(duration.Seconds())%60), 86, 150, 42, rl.Black)
-		//DEBUG LINES
-		//rl.DrawLine(138, 0, 138, 450, rl.Black)
-
-		// Bottom Buttons
-		reset := rg.Button(rl.NewRectangle(50, 375, 45, 45), "Reset")
-		startPause := rg.Button(rl.NewRectangle(100, 360, 75, 75), "Start\nPause")
-		skip := rg.Button(rl.NewRectangle(180, 375, 45, 45), "Skip")
-
-		switch state {
-		case PAUSED:
-		case PLAYING:
-			duration = duration - time.Second/24
-			if duration == 0 {
-				state = PAUSED
-			}
+		rl.DrawLine(0, 50, 275, 50, rl.Black)
+		switch {
+		case bool(state.Menu[0]):
+			DrawConfig(&state, &config)
+		case bool(state.Menu[1]):
+			DrawTimer(&state)
 		}
-
 		rl.EndDrawing()
 
+		// Should replace with state var
+		CheckStates(config, &state) //&player_state, &pomodoro_state, &duration, &color)
+
 		switch {
-		case taskList:
+		case taskListBtn:
 			fmt.Println("taskList")
-		case config:
+		case configBtn:
 			fmt.Println("config")
-		case timer:
+			state.Menu[0] = true
+			state.Menu[1] = false
+		case timerBtn:
 			fmt.Println("timer")
-		case settings:
+			state.Menu[0] = false
+			state.Menu[1] = true
+		case settingsBtn:
 			fmt.Println("settings")
 		case reset:
-			state = PAUSED
-			ResetTimer(&duration)
+			state.Player = PAUSED
+			ResetTimer(&state, config)
 		case startPause:
 			StartPause(&state)
 			fmt.Println("start\\pause")
@@ -82,18 +96,6 @@ func main() {
 
 		go Exit()
 	}
-}
-
-func StartPause(state *int) {
-	if *state == PAUSED {
-		*state = PLAYING
-	} else {
-		*state = PAUSED
-	}
-}
-
-func ResetTimer(duration *time.Duration) {
-	*duration = time.Duration(time.Minute * time.Duration(work))
 }
 
 func Exit() {
