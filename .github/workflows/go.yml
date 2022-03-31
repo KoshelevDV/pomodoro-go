@@ -21,7 +21,7 @@ jobs:
     - name: Install deps
       run: |
             sudo apt update
-            sudo apt install libgl1-mesa-dev libxi-dev libxcursor-dev libxrandr-dev libxinerama-dev 
+            sudo apt install libgl1-mesa-dev libxi-dev libxcursor-dev libxrandr-dev libxinerama-dev mingw-w64
     - name: Build
       run: go build -v ./...
 
