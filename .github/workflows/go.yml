@@ -19,7 +19,9 @@ jobs:
         go-version: 1.17
 
     - name: Install deps
-      run: sudo apt install libgl1-mesa-dev libxi-dev libxcursor-dev libxrandr-dev libxinerama-dev 
+      run: |
+            sudo apt updatea
+            sudo apt install libgl1-mesa-dev libxi-dev libxcursor-dev libxrandr-dev libxinerama-dev 
     - name: Build
       run: go build -v ./...
 
