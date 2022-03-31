@@ -17,12 +17,6 @@ const (
 	LONG_REST = iota + 1
 )
 
-var (
-	work       = 25
-	shortBreak = 5
-	longBreak  = 15
-)
-
 func main() {
 
 	Init()
@@ -84,7 +78,7 @@ func main() {
 			fmt.Println("settings")
 		case reset:
 			state.Player = PAUSED
-			ResetTimer(&state)
+			ResetTimer(&state, config)
 		case startPause:
 			StartPause(&state)
 			fmt.Println("start\\pause")

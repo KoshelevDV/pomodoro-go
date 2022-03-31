@@ -57,6 +57,6 @@ func StartPause(state *State) {
 
 // Reset timer to default config duration.
 // NEED TO DO. BAD IMPLEMENTATION
-func ResetTimer(state *State) {
-	(*state).Duration = time.Duration(time.Minute * time.Duration(work))
+func ResetTimer(state *State, config Config) {
+	(*state).Duration = time.Duration(time.Minute * time.Duration(config.Work))
 }
