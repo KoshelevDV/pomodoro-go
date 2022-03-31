@@ -44,6 +44,13 @@ func main() {
 		Menu:     menu,
 	}
 
+	circle := Circle{
+		startAngle: 0,
+		endAngle:   0,
+		unit:       float32(360 / (time.Duration(config.Work) * time.Minute).Seconds() / 24),
+	}
+	fmt.Println(float32(360 / time.Duration(config.Work).Seconds()))
+	fmt.Println((time.Duration(config.Work) * time.Minute).Seconds())
 	// color := rl.Black
 
 	rl.InitWindow(275, 450, "[raylib] Pomodoro")
@@ -62,14 +69,14 @@ func main() {
 		rl.DrawLine(0, 50, 275, 50, rl.Black)
 		switch {
 		case bool(state.Menu[0]):
-			DrawConfig(&state, &config)
+			DrawConfig(&state, &config, &circle)
 		case bool(state.Menu[1]):
-			DrawTimer(&state)
+			DrawTimer(&state, &config, &circle)
 		}
 		rl.EndDrawing()
 
 		// Should replace with state var
-		CheckStates(config, &state) //&player_state, &pomodoro_state, &duration, &color)
+		CheckStates(config, &state, &circle) //&player_state, &pomodoro_state, &duration, &color)
 
 		switch {
 		case taskListBtn:
