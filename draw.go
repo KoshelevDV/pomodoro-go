@@ -9,8 +9,20 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-func DrawTimer(state *State) {
-	// Middle elements aga
+type Circle struct {
+	startAngle float32
+	endAngle   float32
+	unit       float32
+}
+
+func DrawTimer(state *State, config *Config, circle *Circle) {
+	// Middle elements
+	fmt.Println(circle.endAngle, circle.unit)
+	rl.DrawRing(rl.NewVector2(134, 170), 70, 74, circle.startAngle, circle.endAngle, 100, rl.Blue)
+	if state.Player == PLAYING {
+		circle.endAngle += circle.unit
+	}
+
 	_hours := math.Floor(state.Duration.Minutes())
 	_minutes := int(state.Duration.Seconds()) % 60
 	rl.DrawText(fmt.Sprintf("%02.0f:%0.2d", _hours, _minutes), 86, 150, 42, state.Color)
@@ -20,7 +32,7 @@ func DrawTimer(state *State) {
 	skip = rg.Button(rl.NewRectangle(180, 375, 45, 45), "Skip")
 }
 
-func DrawConfig(state *State, config *Config) {
+func DrawConfig(state *State, config *Config, circle *Circle) {
 	rl.DrawText("Work", 14, 80, 20, rl.Black)
 	rl.DrawText(fmt.Sprintf("%3d", config.Work), 185, 80, 20, rl.Black)
 	rl.DrawText(" mins", 215, 80, 20, rl.Black)
@@ -41,12 +53,14 @@ func DrawConfig(state *State, config *Config) {
 	rl.DrawText(" rounds", 183, 230, 20, rl.Black)
 	config.WorkPeriod = int(rg.Slider(rl.NewRectangle(10, 250, 255, 20), float32(config.WorkPeriod), 0, 12))
 
-	switch state.Pomodoro {
-	case WORK:
+	if rg.Button(rl.NewRectangle(150, 400, 100, 30), "Save") {
 		state.Duration = time.Duration(config.Work) * time.Minute
-	case REST:
 		state.Duration = time.Duration(config.Rest) * time.Minute
-	case LONG_REST:
 		state.Duration = time.Duration(config.Long_rest) * time.Minute
+
+		circle.endAngle = 0
+
+		circle.unit = float32(360 / state.Duration.Seconds() / 24)
+
 	}
 }
