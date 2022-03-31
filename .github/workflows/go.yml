@@ -26,4 +26,4 @@ jobs:
 #       run: go build -v ./...
 
     - name: Build windows
-      run: env GOOS=windows GOARCH=amd64 CC_FOR_TARGET="gcc-mingw-w64-x86-64" bash scripts/build.sh 
+      run: CGO_ENABLED=1 GOOS=windows CC=x86_64-w64-mingw32-gcc scripts/build.sh
