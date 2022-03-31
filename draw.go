@@ -10,7 +10,7 @@ import (
 )
 
 func DrawTimer(state *State) {
-	// Middle elements
+	// Middle elements aga
 	_hours := math.Floor(state.Duration.Minutes())
 	_minutes := int(state.Duration.Seconds()) % 60
 	rl.DrawText(fmt.Sprintf("%02.0f:%0.2d", _hours, _minutes), 86, 150, 42, state.Color)
