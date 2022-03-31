@@ -6,11 +6,14 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
+type Menu bool
+
 type State struct {
 	Player   int
 	Pomodoro int
 	Color    rl.Color
 	Duration time.Duration
+	Menu     []Menu
 }
 
 func CheckStates(config Config, state *State) { //player_state *int, pomodoro_state *int, duration *time.Duration, color *rl.Color) {
