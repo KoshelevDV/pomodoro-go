@@ -18,4 +18,6 @@ tasks:
     env:
       BUILD_OS: windows
     cmds:
+      - echo "Start building..."
       - go build -ldflags -H=windowsgui -o builds/pomodoro-$(echo $(git describe --tags))-$BUILD_OS.exe .
+      - echo "Done"
